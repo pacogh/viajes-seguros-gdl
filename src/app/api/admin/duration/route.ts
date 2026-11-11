@@ -1,0 +1,2 @@
+import {NextRequest} from "next/server"; import {z} from "zod"; import {errorResponse,json,requireSameOrigin} from "@/lib/auth/http"; import {requireRole} from "@/lib/auth/sessions"; import {query} from "@/lib/db/queries";
+export async function PATCH(req:NextRequest){try{requireSameOrigin(req);const a=await requireRole("admin");const {minutes}=z.object({minutes:z.number().int().positive()}).parse(await req.json());await query("SELECT viajes.set_trip_duration($1,$2)",[minutes,a.user_id]);return json({ok:true})}catch(e){return errorResponse(e)}}

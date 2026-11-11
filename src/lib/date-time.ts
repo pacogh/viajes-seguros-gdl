@@ -1,0 +1,9 @@
+export const TZ="America/Mexico_City";
+export function mexicoDateParts(date=new Date()){const p=new Intl.DateTimeFormat("en-CA",{timeZone:TZ,year:"numeric",month:"2-digit",day:"2-digit"}).formatToParts(date);return Object.fromEntries(p.map(x=>[x.type,x.value])) as Record<string,string>}
+export function localDateKey(date=new Date()){const p=mexicoDateParts(date);return `${p.year}-${p.month}-${p.day}`}
+export function dateKeyAddMonths(dateKey:string,months:number){const [y,m]=dateKey.split("-").map(Number),d=new Date(Date.UTC(y,m-1+months,1));return `${d.getUTCFullYear()}-${String(d.getUTCMonth()+1).padStart(2,"0")}-01`}
+export function toMexicoIso(local:string){const [date,time]=local.split("T"),[y,m,d]=date.split("-").map(Number),[hh,mm]=time.split(":").map(Number);let guess=Date.UTC(y,m-1,d,hh,mm);for(let i=0;i<3;i++){const parts=new Intl.DateTimeFormat("en-US",{timeZone:TZ,year:"numeric",month:"numeric",day:"numeric",hour:"numeric",minute:"numeric",hourCycle:"h23"}).formatToParts(new Date(guess));const v=Object.fromEntries(parts.map(x=>[x.type,Number(x.value)]));const shown=Date.UTC(v.year,v.month-1,v.day,v.hour,v.minute);guess+=Date.UTC(y,m-1,d,hh,mm)-shown}return new Date(guess).toISOString()}
+export function mexicoMonthStart(date=new Date()){const p=mexicoDateParts(date);return `${p.year}-${p.month}-01`}
+export function monthEndKey(monthStart:string){const [y,m]=monthStart.split("-").map(Number);return new Date(Date.UTC(y,m,0)).toISOString().slice(0,10)}
+export function monthLabel(monthStart:string){const parts=new Intl.DateTimeFormat("es-MX",{timeZone:TZ,month:"long",year:"numeric"}).formatToParts(new Date(`${monthStart}T12:00:00Z`));return `${parts.find(part=>part.type==="month")?.value} ${parts.find(part=>part.type==="year")?.value}`}
+export function formatMexicoDate(iso:string,withTime=false){return new Intl.DateTimeFormat("es-MX",{timeZone:TZ,dateStyle:"medium",...(withTime?{timeStyle:"short" as const}:{})}).format(new Date(iso))}

@@ -1,0 +1,2 @@
+import {NextRequest} from "next/server"; import {errorResponse,json,requireSameOrigin} from "@/lib/auth/http"; import {requireRole} from "@/lib/auth/sessions"; import {query} from "@/lib/db/queries";
+export async function POST(req:NextRequest,{params}:{params:Promise<{id:string}>}){try{requireSameOrigin(req);const a=await requireRole("admin");const {id}=await params;await query("SELECT viajes.release_admin_cancelled_trip($1,$2)",[id,a.user_id]);return json({ok:true})}catch(e){return errorResponse(e)}}
