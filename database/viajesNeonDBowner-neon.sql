@@ -1,0 +1,1 @@
+SELECT current_database() AS base, current_user AS usuario;

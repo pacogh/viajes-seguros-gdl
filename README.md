@@ -17,7 +17,7 @@ Aplicación web en español para solicitudes de viajes, con un panel administrat
 ## Inicio rápido
 
 1. Instala los scripts de la base en el orden indicado en `database/README.md`.
-2. Copia `.env.example` a `.env.local` y completa la configuración de conexión y correo.
+2. Copia `.env.example` a `.env.local` y completa la conexión a PostgreSQL. Para correo real, agrega la API key de Brevo y un remitente verificado; consulta [configuración de correo y ubicaciones](docs/setup-email-maps.md).
 3. Ejecuta `npm install`.
 4. Inicia con `npm run dev`.
 5. Reclama la cuenta administrativa inicial en `/claim-admin`; pasajeros se registran en `/register`.

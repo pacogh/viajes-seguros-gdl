@@ -135,7 +135,7 @@ Implementar registro y acceso con contraseña, verificación y recuperación med
 3. **Direcciones:** en esta fase se guardan como texto libre sin geocodificación ni validación automática de zona. El administrador revisa que estén dentro del AMG antes de confirmar. Se conservan las columnas espaciales y los límites oficiales en PostGIS para una posible integración futura.
 4. **Autenticación propia:** contraseñas con hash fuerte, sesiones revocables en cookies seguras y enlaces de un solo uso con vencimiento para verificar correos y recuperar contraseñas. No se enviarán códigos por correo ni se integrará SMS.
 5. **Mapa:** Google Maps queda desactivado y no requiere clave ni genera llamadas. Puede evaluarse en una fase futura si se decide asumir su costo.
-6. **Correo:** usar un proveedor con plan gratuito y detener envíos en el límite para impedir cobros. Como candidato actual, Brevo declara 300 envíos diarios gratuitos e incluye correo transaccional; al llegar al límite los correos pueden retrasarse o no entregarse. El proveedor/cuenta remitente se configurarán antes de producción, y sus planes y restricciones deberán verificarse nuevamente en ese momento. Fuente: [límites del plan gratuito de Brevo](https://help.brevo.com/hc/en-us/articles/208580669-FAQs-What-are-the-limits-of-the-Free-plan) y [planes de Brevo](https://help.brevo.com/hc/en-us/articles/208589409-About-Brevo-s-pricing-plans).
+6. **Correo:** usar Brevo mediante su API transaccional HTTPS, no SMTP, para que funcione desde el servicio gratuito de Render. La clave API y el remitente verificado se configuran como secretos/variables del servidor, nunca en el cliente ni en Git. Se conserva la cuota diaria y mensual de la base de datos y el plan gratuito de Brevo (300 correos al día al momento de esta decisión); al alcanzar cualquier límite no se intentará enviar más correos. Las condiciones del proveedor se deben comprobar de nuevo al desplegar. Fuente: [límites del plan gratuito de Brevo](https://help.brevo.com/hc/en-us/articles/208580669-FAQs-What-are-the-limits-of-the-Free-plan), [API transaccional de Brevo](https://developers.brevo.com/docs/send-a-transactional-email) y [bloqueo SMTP de Render Free](https://render.com/changelog/free-web-services-will-no-longer-allow-outbound-traffic-to-smtp-ports).
 7. **Interfaz:** diseño adaptable para móvil y escritorio, textos en español, y una vista de pasajero y otra administrativa protegida por rol.
 
 ## 8. Dependencias externas y costos a considerar
@@ -154,9 +154,17 @@ Implementar registro y acceso con contraseña, verificación y recuperación med
 ## 10. Configuraciones pendientes para producción
 
 1. La integración de mapas queda pospuesta; no es necesaria para operar la versión actual.
-2. Proveedor y remitente de correo autenticado, con topes configurados para impedir cargos. La cuota puede detener verificación, recuperación y notificaciones al alcanzarse.
+2. Cuenta Brevo con API key y remitente verificado, y topes configurados para impedir cargos. La cuota puede detener verificación, recuperación y notificaciones al alcanzarse.
 3. Servidor público y base PostgreSQL/PostGIS compatibles; se configurarán cuando el propietario defina el destino.
 
 ## 11. Fuera del documento
 
 La especificación fue aprobada por el propietario antes de iniciar la implementación. Las decisiones de producción del apartado 10 se requieren para desplegar y operar servicios externos, no para completar el desarrollo local.
+
+## 12. Decisión de despliegue: correo Brevo por API
+
+- El transporte de correo usa `POST https://api.brevo.com/v3/smtp/email` por HTTPS con una API key de servidor.
+- El remitente debe estar registrado y verificado en Brevo.
+- Variables de servidor: `BREVO_API_KEY`, `BREVO_SENDER_EMAIL` y `BREVO_SENDER_NAME`. `MAIL_DAILY_CAP` y `MAIL_MONTHLY_CAP` conservan sus funciones actuales.
+- En desarrollo, si falta la API key, se registra el correo en consola como modo de prueba. En producción, la clave y el remitente son obligatorios.
+- SMTP deja de ser el transporte soportado por la aplicación.
